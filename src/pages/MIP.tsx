@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
+import { MarketFunnel } from "@/components/MarketFunnel";
 
 const MIP_API = "https://mip-service-production.up.railway.app";
 
@@ -720,7 +721,10 @@ export default function MIP() {
           </Card>
         </div>
 
-        {/* Section 3: Market Inventory — real data */}
+        {/* Section 3: MH Priority Funnel */}
+        <MarketFunnel />
+
+        {/* Section 4: Market Inventory — real data */}
         <Card className="p-6 shadow-soft border-border/50">
           <h2 className="text-xl font-semibold mb-4 text-foreground font-serif">Market Inventory</h2>
 
