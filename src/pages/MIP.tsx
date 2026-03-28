@@ -27,6 +27,7 @@ import {
   XCircle,
   AlertTriangle,
   X,
+  Zap,
 } from "lucide-react";
 import { MarketFunnel } from "@/components/MarketFunnel";
 
@@ -565,6 +566,16 @@ export default function MIP() {
                   >
                     <Settings2 className="w-4 h-4 mr-2" />
                     Configure Brands
+                  </Button>
+                </Link>
+
+                <Link to="/mip/ops">
+                  <Button
+                    variant="outline"
+                    className="w-full border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 font-sans font-medium"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    OPS Dashboard
                   </Button>
                 </Link>
 
