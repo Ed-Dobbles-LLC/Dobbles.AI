@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 const C = {
@@ -1009,14 +1009,15 @@ function PipelineTab() {
   const [loading, setLoading]       = useState(true);
   const [err, setErr]               = useState("");
   const [lastPoll, setLastPoll]     = useState<Date | null>(null);
-  const [prevProcessed, setPrevProcessed] = useState<number | null>(null);
-  const [prevTime, setPrevTime]     = useState<number | null>(null);
   const [rate, setRate]             = useState<number | null>(null);
+  const prevRef = useRef<{ processed: number; time: number } | null>(null);
 
   const fetchAll = async () => {
     setErr("");
+    const errors: string[] = [];
+
+    // Health — isolated try/catch
     try {
-      // Health
       const hRes = await fetch(`${MIP_API}/health`, { headers: MIP_ADMIN_HEADERS });
       if (hRes.ok) {
         const hd = await hRes.json();
@@ -1026,72 +1027,77 @@ function PipelineTab() {
           timestamp: hd?.timestamp ?? undefined,
           menu_artifacts_total: hd?.menu_artifacts_total ?? undefined,
         });
+      } else {
+        errors.push(`Health: ${hRes.status}`);
       }
+    } catch (e: any) {
+      errors.push(`Health: ${e?.message ?? "network error"}`);
+    }
 
-      // Backfill status
+    // Backfill status — isolated try/catch
+    try {
       const bRes = await fetch(`${MIP_API}/api/admin/menu-capture-backfill/status`, { headers: MIP_ADMIN_HEADERS });
       if (bRes.ok) {
         const raw = await bRes.json();
-        const bd = {
-          completed: raw?.completed ?? 0,
-          running: raw?.running ?? 0,
-          queued: raw?.queued ?? 0,
-          total_processed: raw?.total_processed ?? 0,
-          menus_found: raw?.menus_found ?? 0,
-          menus_captured: raw?.menus_captured ?? 0,
+        const bd: BackfillData = {
+          completed: Number(raw?.completed) || 0,
+          running: Number(raw?.running) || 0,
+          queued: Number(raw?.queued) || 0,
+          total_processed: Number(raw?.total_processed) || 0,
+          menus_found: Number(raw?.menus_found) || 0,
+          menus_captured: Number(raw?.menus_captured) || 0,
         };
         setBackfill(bd);
-        // Calculate rate
+        // Calculate rate using ref (avoids stale closure)
         const now = Date.now();
-        if (prevProcessed !== null && prevTime !== null) {
-          const dt = (now - prevTime) / 3600000; // hours
-          if (dt > 0) setRate(Math.round((bd.total_processed - prevProcessed) / dt));
+        const prev = prevRef.current;
+        if (prev !== null) {
+          const dt = (now - prev.time) / 3600000;
+          if (dt > 0) setRate(Math.round((bd.total_processed - prev.processed) / dt));
         }
-        setPrevProcessed(bd.total_processed);
-        setPrevTime(now);
+        prevRef.current = { processed: bd.total_processed, time: now };
       }
+    } catch {
+      // backfill endpoint may be down — leave backfill null
+    }
 
-      // Pipeline waterfall via run-query
-      try {
-        const wRes = await fetch(`${MIP_API}/api/admin/run-query`, {
-          method: "POST",
-          headers: MIP_ADMIN_HEADERS,
-          body: JSON.stringify({
-            query: `SELECT
-              (SELECT count(*) FROM canonical_venues) AS total,
-              (SELECT count(*) FROM canonical_venues WHERE website_url IS NOT NULL AND website_url != '') AS has_url,
-              (SELECT count(*) FROM canonical_venues WHERE is_confirmed_live = true) AS confirmed_live,
-              (SELECT count(*) FROM canonical_venues WHERE is_validated_correct = true) AS validated,
-              (SELECT count(*) FROM canonical_venues WHERE menu_captured = true) AS has_menu,
-              (SELECT count(*) FROM canonical_venues WHERE menu_extracted = true) AS extracted`
-          }),
-        });
-        if (wRes.ok) {
-          const wd = await wRes.json();
-          const row = Array.isArray(wd) ? wd[0] : (wd?.rows ? wd.rows[0] : wd);
-          if (!row) throw new Error("empty response");
+    // Pipeline waterfall — isolated try/catch
+    try {
+      const wRes = await fetch(`${MIP_API}/api/admin/run-query`, {
+        method: "POST",
+        headers: MIP_ADMIN_HEADERS,
+        body: JSON.stringify({
+          query: `SELECT
+            (SELECT count(*) FROM canonical_venues) AS total,
+            (SELECT count(*) FROM canonical_venues WHERE website_url IS NOT NULL AND website_url != '') AS has_url,
+            (SELECT count(*) FROM canonical_venues WHERE is_confirmed_live = true) AS confirmed_live,
+            (SELECT count(*) FROM canonical_venues WHERE is_validated_correct = true) AS validated,
+            (SELECT count(*) FROM canonical_venues WHERE menu_captured = true) AS has_menu,
+            (SELECT count(*) FROM canonical_venues WHERE menu_extracted = true) AS extracted`
+        }),
+      });
+      if (wRes.ok) {
+        const wd = await wRes.json();
+        const row = Array.isArray(wd) ? wd[0] : (wd?.rows ? wd.rows[0] : wd);
+        if (row) {
           const total = Number(row.total) || 0;
-          const stages = [
+          setWaterfall([
             { label: "Total Canonical Venues", count: total,                      pct: 100 },
             { label: "Has URL",                count: Number(row.has_url) || 0,   pct: total ? Math.round((Number(row.has_url) / total) * 100) : 0 },
             { label: "Confirmed Live",         count: Number(row.confirmed_live) || 0, pct: total ? Math.round((Number(row.confirmed_live) / total) * 100) : 0 },
             { label: "Validated Correct",      count: Number(row.validated) || 0, pct: total ? Math.round((Number(row.validated) / total) * 100) : 0 },
             { label: "Has Menu Captured",      count: Number(row.has_menu) || 0,  pct: total ? Math.round((Number(row.has_menu) / total) * 100) : 0 },
             { label: "Extracted",              count: Number(row.extracted) || 0, pct: total ? Math.round((Number(row.extracted) / total) * 100) : 0 },
-          ];
-          setWaterfall(stages);
+          ]);
         }
-      } catch {
-        // run-query endpoint may not exist yet — show placeholder
-        setWaterfall([]);
       }
-
-      setLastPoll(new Date());
-    } catch (e: any) {
-      setErr(e.message || "Failed to fetch pipeline data");
-    } finally {
-      setLoading(false);
+    } catch {
+      // run-query endpoint may not exist yet — leave waterfall empty
     }
+
+    setLastPoll(new Date());
+    if (errors.length > 0) setErr(errors.join(" | "));
+    setLoading(false);
   };
 
   useEffect(() => {
