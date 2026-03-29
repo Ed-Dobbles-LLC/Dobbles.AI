@@ -994,12 +994,13 @@ const POLL_MS = 5 * 60 * 1000;
 
 interface WaterfallStage { label: string; count: number; pct: number }
 interface BackfillData {
-  completed: number; running: number; queued: number;
-  total_processed: number; menus_found: number; menus_captured: number;
+  completed: number; running: number; queued: number; failed: number;
+  total_gap_venues: number; total_processed: number; total_validated: number;
+  total_menus_found: number; total_captured: number;
 }
 interface HealthData {
-  status: string; uptime?: number; timestamp?: string;
-  menu_artifacts_total?: number;
+  status: string; worker_count?: number; active_runs?: number;
+  queued?: number;
 }
 
 function PipelineTab() {
@@ -1023,9 +1024,9 @@ function PipelineTab() {
         const hd = await hRes.json();
         setHealth({
           status: hd?.status ?? "unknown",
-          uptime: hd?.uptime ?? undefined,
-          timestamp: hd?.timestamp ?? undefined,
-          menu_artifacts_total: hd?.menu_artifacts_total ?? undefined,
+          worker_count: Number(hd?.worker_count) || 0,
+          active_runs: Number(hd?.active_runs) || 0,
+          queued: Number(hd?.queued) || 0,
         });
       } else {
         errors.push(`Health: ${hRes.status}`);
@@ -1034,20 +1035,37 @@ function PipelineTab() {
       errors.push(`Health: ${e?.message ?? "network error"}`);
     }
 
-    // Backfill status — isolated try/catch
+    // Backfill status — provides both backfill progress AND waterfall data
     try {
       const bRes = await fetch(`${MIP_API}/api/admin/menu-capture-backfill/status`, { headers: MIP_ADMIN_HEADERS });
       if (bRes.ok) {
         const raw = await bRes.json();
+        const summary = raw?.summary ?? {};
         const bd: BackfillData = {
-          completed: Number(raw?.completed) || 0,
-          running: Number(raw?.running) || 0,
-          queued: Number(raw?.queued) || 0,
+          completed: Number(summary?.completed) || 0,
+          running: Number(summary?.running) || 0,
+          queued: Number(summary?.queued) || 0,
+          failed: Number(summary?.failed) || 0,
+          total_gap_venues: Number(raw?.total_gap_venues) || 0,
           total_processed: Number(raw?.total_processed) || 0,
-          menus_found: Number(raw?.menus_found) || 0,
-          menus_captured: Number(raw?.menus_captured) || 0,
+          total_validated: Number(raw?.total_validated) || 0,
+          total_menus_found: Number(raw?.total_menus_found) || 0,
+          total_captured: Number(raw?.total_captured) || 0,
         };
         setBackfill(bd);
+
+        // Build waterfall from backfill data
+        const gv = bd.total_gap_venues;
+        if (gv > 0) {
+          setWaterfall([
+            { label: "Gap Venues (Total)",    count: gv,                    pct: 100 },
+            { label: "Processed",             count: bd.total_processed,    pct: Math.round((bd.total_processed / gv) * 100) },
+            { label: "Validated",             count: bd.total_validated,    pct: Math.min(100, Math.round((bd.total_validated / gv) * 100)) },
+            { label: "Menus Found",           count: bd.total_menus_found,  pct: Math.round((bd.total_menus_found / gv) * 100) },
+            { label: "Menus Captured",        count: bd.total_captured,     pct: Math.round((bd.total_captured / gv) * 100) },
+          ]);
+        }
+
         // Calculate rate using ref (avoids stale closure)
         const now = Date.now();
         const prev = prevRef.current;
@@ -1059,40 +1077,6 @@ function PipelineTab() {
       }
     } catch {
       // backfill endpoint may be down — leave backfill null
-    }
-
-    // Pipeline waterfall — isolated try/catch
-    try {
-      const wRes = await fetch(`${MIP_API}/api/admin/run-query`, {
-        method: "POST",
-        headers: MIP_ADMIN_HEADERS,
-        body: JSON.stringify({
-          query: `SELECT
-            (SELECT count(*) FROM canonical_venues) AS total,
-            (SELECT count(*) FROM canonical_venues WHERE website_url IS NOT NULL AND website_url != '') AS has_url,
-            (SELECT count(*) FROM canonical_venues WHERE is_confirmed_live = true) AS confirmed_live,
-            (SELECT count(*) FROM canonical_venues WHERE is_validated_correct = true) AS validated,
-            (SELECT count(*) FROM canonical_venues WHERE menu_captured = true) AS has_menu,
-            (SELECT count(*) FROM canonical_venues WHERE menu_extracted = true) AS extracted`
-        }),
-      });
-      if (wRes.ok) {
-        const wd = await wRes.json();
-        const row = Array.isArray(wd) ? wd[0] : (wd?.rows ? wd.rows[0] : wd);
-        if (row) {
-          const total = Number(row.total) || 0;
-          setWaterfall([
-            { label: "Total Canonical Venues", count: total,                      pct: 100 },
-            { label: "Has URL",                count: Number(row.has_url) || 0,   pct: total ? Math.round((Number(row.has_url) / total) * 100) : 0 },
-            { label: "Confirmed Live",         count: Number(row.confirmed_live) || 0, pct: total ? Math.round((Number(row.confirmed_live) / total) * 100) : 0 },
-            { label: "Validated Correct",      count: Number(row.validated) || 0, pct: total ? Math.round((Number(row.validated) / total) * 100) : 0 },
-            { label: "Has Menu Captured",      count: Number(row.has_menu) || 0,  pct: total ? Math.round((Number(row.has_menu) / total) * 100) : 0 },
-            { label: "Extracted",              count: Number(row.extracted) || 0, pct: total ? Math.round((Number(row.extracted) / total) * 100) : 0 },
-          ]);
-        }
-      }
-    } catch {
-      // run-query endpoint may not exist yet — leave waterfall empty
     }
 
     setLastPoll(new Date());
@@ -1137,7 +1121,7 @@ function PipelineTab() {
   }
 
   const status = pipelineStatus();
-  const backfillTotal = backfill ? (backfill.completed ?? 0) + (backfill.running ?? 0) + (backfill.queued ?? 0) : 0;
+  const stateTotal = backfill ? (backfill.completed ?? 0) + (backfill.running ?? 0) + (backfill.queued ?? 0) + (backfill.failed ?? 0) : 0;
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24, animation:"fadeUp 0.3s ease" }}>
@@ -1167,7 +1151,7 @@ function PipelineTab() {
         </div>
         {waterfall.length === 0 ? (
           <div style={{ fontSize:11, color:C.muted, fontFamily:"Space Mono, monospace", padding:20, textAlign:"center" }}>
-            run-query endpoint not available — deploy to mip-service to enable waterfall view
+            No backfill data available yet
           </div>
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -1218,33 +1202,33 @@ function PipelineTab() {
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             {/* Stacked progress bar */}
             <div style={{ height:28, borderRadius:4, overflow:"hidden", display:"flex", background:C.faint }}>
-              {backfillTotal > 0 && (
+              {stateTotal > 0 && (
                 <>
                   <div style={{
-                    width:`${(backfill.completed / backfillTotal) * 100}%`,
+                    width:`${((backfill.completed ?? 0) / stateTotal) * 100}%`,
                     background:C.teal, transition:"width 0.6s",
-                  }} title={`Completed: ${backfill.completed}`} />
+                  }} title={`Completed: ${backfill.completed ?? 0} states`} />
                   <div style={{
-                    width:`${(backfill.running / backfillTotal) * 100}%`,
+                    width:`${((backfill.running ?? 0) / stateTotal) * 100}%`,
                     background:C.sky, transition:"width 0.6s",
-                  }} title={`Running: ${backfill.running}`} />
+                  }} title={`Running: ${backfill.running ?? 0} states`} />
                   <div style={{
-                    width:`${(backfill.queued / backfillTotal) * 100}%`,
+                    width:`${((backfill.queued ?? 0) / stateTotal) * 100}%`,
                     background:C.muted, transition:"width 0.6s",
-                  }} title={`Queued: ${backfill.queued}`} />
+                  }} title={`Queued: ${backfill.queued ?? 0} states`} />
                 </>
               )}
             </div>
             {/* Legend */}
             <div style={{ display:"flex", gap:18, fontSize:11, fontFamily:"Space Mono, monospace" }}>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.teal} /> <span style={{ color:C.text }}>Completed {(backfill.completed ?? 0).toLocaleString()}</span>
+                <Dot color={C.teal} /> <span style={{ color:C.text }}>{(backfill.completed ?? 0)} completed</span>
               </span>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.sky} pulse /> <span style={{ color:C.text }}>Running {(backfill.running ?? 0).toLocaleString()}</span>
+                <Dot color={C.sky} pulse /> <span style={{ color:C.text }}>{(backfill.running ?? 0)} running</span>
               </span>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.muted} /> <span style={{ color:C.text }}>Queued {(backfill.queued ?? 0).toLocaleString()}</span>
+                <Dot color={C.muted} /> <span style={{ color:C.text }}>{(backfill.queued ?? 0)} queued</span>
               </span>
             </div>
             {/* Stats row */}
@@ -1253,8 +1237,8 @@ function PipelineTab() {
             }}>
               {[
                 { label:"PROCESSED", value:(backfill.total_processed ?? 0).toLocaleString(), color:C.text },
-                { label:"MENUS FOUND", value:(backfill.menus_found ?? 0).toLocaleString(), color:C.teal },
-                { label:"MENUS CAPTURED", value:(backfill.menus_captured ?? 0).toLocaleString(), color:C.sky },
+                { label:"MENUS FOUND", value:(backfill.total_menus_found ?? 0).toLocaleString(), color:C.teal },
+                { label:"MENUS CAPTURED", value:(backfill.total_captured ?? 0).toLocaleString(), color:C.sky },
                 { label:"VENUES/HR", value: rate !== null ? rate.toLocaleString() : "—", color: rate !== null && rate < 5 ? "#F0B840" : C.teal },
               ].map(s => (
                 <div key={s.label} style={{
@@ -1276,17 +1260,27 @@ function PipelineTab() {
         <div style={{ fontSize:12, fontWeight:700, letterSpacing:"0.1em", fontFamily:"Space Mono, monospace", marginBottom:16, color:"#F0B840" }}>
           HEALTH INDICATORS
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:12 }}>
+          {/* Workers */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>WORKERS</div>
+            <div style={{ fontSize:22, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.sky }}>
+              {health?.worker_count ?? "—"}
+            </div>
+            <div style={{ fontSize:10, color:C.muted, fontFamily:"DM Sans, sans-serif", marginTop:2 }}>
+              {health?.active_runs ?? 0} active runs
+            </div>
+          </div>
           {/* Menu artifacts */}
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
-            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>MENU ARTIFACTS</div>
-            <div style={{ fontSize:22, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.sky }}>
-              {health?.menu_artifacts_total != null ? health.menu_artifacts_total.toLocaleString() : backfill?.menus_captured?.toLocaleString() || "—"}
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>MENUS CAPTURED</div>
+            <div style={{ fontSize:22, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.teal }}>
+              {(backfill?.total_captured ?? 0).toLocaleString()}
             </div>
           </div>
           {/* Last updated */}
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
-            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>LAST UPDATED</div>
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>LAST POLLED</div>
             <div style={{ fontSize:13, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.text }}>
               {lastPoll ? lastPoll.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }) : "—"}
             </div>
