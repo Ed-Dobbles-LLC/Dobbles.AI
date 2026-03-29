@@ -988,6 +988,314 @@ function CoachTab() {
   );
 }
 
+// ─── PIPELINE SCORECARD TAB ──────────────────────────────────────────────────
+const MIP_ADMIN_HEADERS = { "x-admin-key": "mip-admin-2026", "Content-Type": "application/json" };
+const POLL_MS = 5 * 60 * 1000;
+
+interface WaterfallStage { label: string; count: number; pct: number }
+interface BackfillData {
+  completed: number; running: number; queued: number;
+  total_processed: number; menus_found: number; menus_captured: number;
+}
+interface HealthData {
+  status: string; uptime?: number; timestamp?: string;
+  menu_artifacts_total?: number;
+}
+
+function PipelineTab() {
+  const [waterfall, setWaterfall]   = useState<WaterfallStage[]>([]);
+  const [backfill, setBackfill]     = useState<BackfillData | null>(null);
+  const [health, setHealth]         = useState<HealthData | null>(null);
+  const [loading, setLoading]       = useState(true);
+  const [err, setErr]               = useState("");
+  const [lastPoll, setLastPoll]     = useState<Date | null>(null);
+  const [prevProcessed, setPrevProcessed] = useState<number | null>(null);
+  const [prevTime, setPrevTime]     = useState<number | null>(null);
+  const [rate, setRate]             = useState<number | null>(null);
+
+  const fetchAll = async () => {
+    setErr("");
+    try {
+      // Health
+      const hRes = await fetch(`${MIP_API}/health`, { headers: MIP_ADMIN_HEADERS });
+      if (hRes.ok) setHealth(await hRes.json());
+
+      // Backfill status
+      const bRes = await fetch(`${MIP_API}/api/admin/menu-capture-backfill/status`, { headers: MIP_ADMIN_HEADERS });
+      if (bRes.ok) {
+        const bd = await bRes.json();
+        setBackfill(bd);
+        // Calculate rate
+        const now = Date.now();
+        if (prevProcessed !== null && prevTime !== null) {
+          const dt = (now - prevTime) / 3600000; // hours
+          if (dt > 0) setRate(Math.round((bd.total_processed - prevProcessed) / dt));
+        }
+        setPrevProcessed(bd.total_processed);
+        setPrevTime(now);
+      }
+
+      // Pipeline waterfall via run-query
+      try {
+        const wRes = await fetch(`${MIP_API}/api/admin/run-query`, {
+          method: "POST",
+          headers: MIP_ADMIN_HEADERS,
+          body: JSON.stringify({
+            query: `SELECT
+              (SELECT count(*) FROM canonical_venues) AS total,
+              (SELECT count(*) FROM canonical_venues WHERE website_url IS NOT NULL AND website_url != '') AS has_url,
+              (SELECT count(*) FROM canonical_venues WHERE is_confirmed_live = true) AS confirmed_live,
+              (SELECT count(*) FROM canonical_venues WHERE is_validated_correct = true) AS validated,
+              (SELECT count(*) FROM canonical_venues WHERE menu_captured = true) AS has_menu,
+              (SELECT count(*) FROM canonical_venues WHERE menu_extracted = true) AS extracted`
+          }),
+        });
+        if (wRes.ok) {
+          const wd = await wRes.json();
+          const row = Array.isArray(wd) ? wd[0] : (wd.rows ? wd.rows[0] : wd);
+          const total = Number(row.total) || 0;
+          const stages = [
+            { label: "Total Canonical Venues", count: total,                      pct: 100 },
+            { label: "Has URL",                count: Number(row.has_url) || 0,   pct: total ? Math.round((Number(row.has_url) / total) * 100) : 0 },
+            { label: "Confirmed Live",         count: Number(row.confirmed_live) || 0, pct: total ? Math.round((Number(row.confirmed_live) / total) * 100) : 0 },
+            { label: "Validated Correct",      count: Number(row.validated) || 0, pct: total ? Math.round((Number(row.validated) / total) * 100) : 0 },
+            { label: "Has Menu Captured",      count: Number(row.has_menu) || 0,  pct: total ? Math.round((Number(row.has_menu) / total) * 100) : 0 },
+            { label: "Extracted",              count: Number(row.extracted) || 0, pct: total ? Math.round((Number(row.extracted) / total) * 100) : 0 },
+          ];
+          setWaterfall(stages);
+        }
+      } catch {
+        // run-query endpoint may not exist yet — show placeholder
+        setWaterfall([]);
+      }
+
+      setLastPoll(new Date());
+    } catch (e: any) {
+      setErr(e.message || "Failed to fetch pipeline data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAll();
+    const id = setInterval(fetchAll, POLL_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const pipelineStatus = () => {
+    if (!health) return { label: "UNKNOWN", color: C.muted, icon: "⚪" };
+    if (health.status !== "ok" && health.status !== "healthy")
+      return { label: "STALLED", color: C.coral, icon: "🔴" };
+    if (rate !== null && rate < 5)
+      return { label: "SLOW", color: "#F0B840", icon: "🟡" };
+    return { label: "ACTIVE", color: C.teal, icon: "🟢" };
+  };
+
+  const barColors = [C.sky, C.teal, "#C084FC", "#F0B840", C.coral, C.navy];
+
+  if (loading) {
+    return (
+      <div style={{ textAlign:"center", padding:60, fontFamily:"Space Mono, monospace", color:C.muted }}>
+        <div style={{ fontSize:24, marginBottom:16, animation:"spin 1s linear infinite", display:"inline-block" }}>⚙</div>
+        <div style={{ fontSize:12, letterSpacing:"0.1em" }}>LOADING PIPELINE DATA…</div>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div style={{ textAlign:"center", padding:60, fontFamily:"Space Mono, monospace" }}>
+        <div style={{ fontSize:12, color:C.coral, marginBottom:8 }}>ERROR</div>
+        <div style={{ fontSize:11, color:C.muted }}>{err}</div>
+        <Btn onClick={fetchAll} small style={{ marginTop:16 }}>RETRY</Btn>
+      </div>
+    );
+  }
+
+  const status = pipelineStatus();
+  const backfillTotal = backfill ? backfill.completed + backfill.running + backfill.queued : 0;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:24, animation:"fadeUp 0.3s ease" }}>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>
+          <div style={{ fontSize:18, fontWeight:700, fontFamily:"Space Mono, monospace", letterSpacing:"0.05em" }}>
+            PIPELINE SCORECARD
+          </div>
+          <div style={{ fontSize:11, color:C.muted, fontFamily:"DM Sans, sans-serif", marginTop:2 }}>
+            Live MIP pipeline status — auto-refreshes every 5 min
+          </div>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <span style={{ fontSize:12 }}>{status.icon}</span>
+          <Tag label={status.label} color={status.color} bg={`${status.color}18`} />
+          <Btn onClick={fetchAll} variant="ghost" small>↻ REFRESH</Btn>
+        </div>
+      </div>
+
+      {/* ── Section 1: Pipeline Waterfall ── */}
+      <div style={{
+        background:C.card, border:`1px solid ${C.border}`, borderRadius:8, padding:20,
+      }}>
+        <div style={{ fontSize:12, fontWeight:700, letterSpacing:"0.1em", fontFamily:"Space Mono, monospace", marginBottom:16, color:C.sky }}>
+          PIPELINE WATERFALL
+        </div>
+        {waterfall.length === 0 ? (
+          <div style={{ fontSize:11, color:C.muted, fontFamily:"Space Mono, monospace", padding:20, textAlign:"center" }}>
+            run-query endpoint not available — deploy to mip-service to enable waterfall view
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {waterfall.map((s, i) => (
+              <div key={s.label} style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{
+                  width:160, fontSize:11, fontFamily:"DM Sans, sans-serif", color:C.text,
+                  fontWeight:500, textAlign:"right", flexShrink:0,
+                }}>{s.label}</div>
+                <div style={{ flex:1, height:22, background:C.faint, borderRadius:4, overflow:"hidden", position:"relative" }}>
+                  <div style={{
+                    width:`${s.pct}%`, height:"100%",
+                    background:`linear-gradient(90deg, ${barColors[i]}CC, ${barColors[i]}80)`,
+                    borderRadius:4, transition:"width 0.6s ease",
+                    minWidth: s.pct > 0 ? 2 : 0,
+                  }}/>
+                </div>
+                <div style={{
+                  width:80, fontSize:11, fontFamily:"Space Mono, monospace", color:C.text,
+                  textAlign:"right", flexShrink:0,
+                }}>
+                  {s.count.toLocaleString()}
+                </div>
+                <div style={{
+                  width:44, fontSize:10, fontFamily:"Space Mono, monospace",
+                  color:C.muted, textAlign:"right", flexShrink:0,
+                }}>
+                  {s.pct}%
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 2: Backfill Progress ── */}
+      <div style={{
+        background:C.card, border:`1px solid ${C.border}`, borderRadius:8, padding:20,
+      }}>
+        <div style={{ fontSize:12, fontWeight:700, letterSpacing:"0.1em", fontFamily:"Space Mono, monospace", marginBottom:16, color:C.teal }}>
+          BACKFILL PROGRESS
+        </div>
+        {!backfill ? (
+          <div style={{ fontSize:11, color:C.muted, fontFamily:"Space Mono, monospace", padding:20, textAlign:"center" }}>
+            Backfill status endpoint unavailable
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {/* Stacked progress bar */}
+            <div style={{ height:28, borderRadius:4, overflow:"hidden", display:"flex", background:C.faint }}>
+              {backfillTotal > 0 && (
+                <>
+                  <div style={{
+                    width:`${(backfill.completed / backfillTotal) * 100}%`,
+                    background:C.teal, transition:"width 0.6s",
+                  }} title={`Completed: ${backfill.completed}`} />
+                  <div style={{
+                    width:`${(backfill.running / backfillTotal) * 100}%`,
+                    background:C.sky, transition:"width 0.6s",
+                  }} title={`Running: ${backfill.running}`} />
+                  <div style={{
+                    width:`${(backfill.queued / backfillTotal) * 100}%`,
+                    background:C.muted, transition:"width 0.6s",
+                  }} title={`Queued: ${backfill.queued}`} />
+                </>
+              )}
+            </div>
+            {/* Legend */}
+            <div style={{ display:"flex", gap:18, fontSize:11, fontFamily:"Space Mono, monospace" }}>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}>
+                <Dot color={C.teal} /> <span style={{ color:C.text }}>Completed {backfill.completed.toLocaleString()}</span>
+              </span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}>
+                <Dot color={C.sky} pulse /> <span style={{ color:C.text }}>Running {backfill.running.toLocaleString()}</span>
+              </span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}>
+                <Dot color={C.muted} /> <span style={{ color:C.text }}>Queued {backfill.queued.toLocaleString()}</span>
+              </span>
+            </div>
+            {/* Stats row */}
+            <div style={{
+              display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:12, marginTop:4,
+            }}>
+              {[
+                { label:"PROCESSED", value:backfill.total_processed.toLocaleString(), color:C.text },
+                { label:"MENUS FOUND", value:backfill.menus_found.toLocaleString(), color:C.teal },
+                { label:"MENUS CAPTURED", value:backfill.menus_captured.toLocaleString(), color:C.sky },
+                { label:"VENUES/HR", value: rate !== null ? rate.toLocaleString() : "—", color: rate !== null && rate < 5 ? "#F0B840" : C.teal },
+              ].map(s => (
+                <div key={s.label} style={{
+                  background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"10px 12px",
+                }}>
+                  <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:4 }}>{s.label}</div>
+                  <div style={{ fontSize:18, fontWeight:700, fontFamily:"Space Mono, monospace", color:s.color }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Health Indicators ── */}
+      <div style={{
+        background:C.card, border:`1px solid ${C.border}`, borderRadius:8, padding:20,
+      }}>
+        <div style={{ fontSize:12, fontWeight:700, letterSpacing:"0.1em", fontFamily:"Space Mono, monospace", marginBottom:16, color:"#F0B840" }}>
+          HEALTH INDICATORS
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+          {/* Menu artifacts */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>MENU ARTIFACTS</div>
+            <div style={{ fontSize:22, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.sky }}>
+              {health?.menu_artifacts_total != null ? health.menu_artifacts_total.toLocaleString() : backfill?.menus_captured?.toLocaleString() || "—"}
+            </div>
+          </div>
+          {/* Last updated */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>LAST UPDATED</div>
+            <div style={{ fontSize:13, fontWeight:700, fontFamily:"Space Mono, monospace", color:C.text }}>
+              {lastPoll ? lastPoll.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }) : "—"}
+            </div>
+            <div style={{ fontSize:10, color:C.muted, fontFamily:"DM Sans, sans-serif", marginTop:2 }}>
+              {lastPoll ? lastPoll.toLocaleDateString() : ""}
+            </div>
+          </div>
+          {/* Pipeline status */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"12px 14px" }}>
+            <div style={{ fontSize:9, letterSpacing:"0.1em", color:C.muted, fontFamily:"Space Mono, monospace", marginBottom:6 }}>PIPELINE STATUS</div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:18 }}>{status.icon}</span>
+              <span style={{ fontSize:15, fontWeight:700, fontFamily:"Space Mono, monospace", color:status.color }}>{status.label}</span>
+            </div>
+            <div style={{ fontSize:10, color:C.muted, fontFamily:"DM Sans, sans-serif", marginTop:4 }}>
+              {status.label === "ACTIVE" && "Pipeline processing normally"}
+              {status.label === "SLOW" && "Rate below threshold"}
+              {status.label === "STALLED" && "Health check failing"}
+              {status.label === "UNKNOWN" && "No health data available"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ fontSize:10, color:C.muted, fontFamily:"Space Mono, monospace", textAlign:"center", letterSpacing:"0.08em" }}>
+        POLLING {MIP_API}/health + /api/admin/menu-capture-backfill/status EVERY 5 MIN
+      </div>
+    </div>
+  );
+}
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function MIPOps() {
   const [tab, setTab] = useState("briefing");
@@ -997,6 +1305,7 @@ export default function MIPOps() {
     { id:"debt",      label:"DEBT",        icon:"🐛", desc:"Bug & debt tracker" },
     { id:"decisions", label:"DECISIONS",   icon:"📋", desc:"Decision log" },
     { id:"coach",     label:"COACH",       icon:"🎯", desc:"Strategic diagnostic" },
+    { id:"pipeline",  label:"PIPELINE",    icon:"📊", desc:"Live scorecard" },
   ];
 
   return (
@@ -1074,6 +1383,7 @@ export default function MIPOps() {
         {tab === "debt"      && <DebtTab />}
         {tab === "decisions" && <DecisionsTab />}
         {tab === "coach"     && <CoachTab />}
+        {tab === "pipeline"  && <PipelineTab />}
       </div>
     </div>
   );
