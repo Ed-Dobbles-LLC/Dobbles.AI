@@ -1189,13 +1189,13 @@ function PipelineTab() {
                   width:80, fontSize:11, fontFamily:"Space Mono, monospace", color:C.text,
                   textAlign:"right", flexShrink:0,
                 }}>
-                  {s.count.toLocaleString()}
+                  {(s.count ?? 0).toLocaleString()}
                 </div>
                 <div style={{
                   width:44, fontSize:10, fontFamily:"Space Mono, monospace",
                   color:C.muted, textAlign:"right", flexShrink:0,
                 }}>
-                  {s.pct}%
+                  {s.pct ?? 0}%
                 </div>
               </div>
             ))}
@@ -1238,13 +1238,13 @@ function PipelineTab() {
             {/* Legend */}
             <div style={{ display:"flex", gap:18, fontSize:11, fontFamily:"Space Mono, monospace" }}>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.teal} /> <span style={{ color:C.text }}>Completed {backfill.completed.toLocaleString()}</span>
+                <Dot color={C.teal} /> <span style={{ color:C.text }}>Completed {(backfill.completed ?? 0).toLocaleString()}</span>
               </span>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.sky} pulse /> <span style={{ color:C.text }}>Running {backfill.running.toLocaleString()}</span>
+                <Dot color={C.sky} pulse /> <span style={{ color:C.text }}>Running {(backfill.running ?? 0).toLocaleString()}</span>
               </span>
               <span style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <Dot color={C.muted} /> <span style={{ color:C.text }}>Queued {backfill.queued.toLocaleString()}</span>
+                <Dot color={C.muted} /> <span style={{ color:C.text }}>Queued {(backfill.queued ?? 0).toLocaleString()}</span>
               </span>
             </div>
             {/* Stats row */}
@@ -1252,9 +1252,9 @@ function PipelineTab() {
               display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:12, marginTop:4,
             }}>
               {[
-                { label:"PROCESSED", value:backfill.total_processed.toLocaleString(), color:C.text },
-                { label:"MENUS FOUND", value:backfill.menus_found.toLocaleString(), color:C.teal },
-                { label:"MENUS CAPTURED", value:backfill.menus_captured.toLocaleString(), color:C.sky },
+                { label:"PROCESSED", value:(backfill.total_processed ?? 0).toLocaleString(), color:C.text },
+                { label:"MENUS FOUND", value:(backfill.menus_found ?? 0).toLocaleString(), color:C.teal },
+                { label:"MENUS CAPTURED", value:(backfill.menus_captured ?? 0).toLocaleString(), color:C.sky },
                 { label:"VENUES/HR", value: rate !== null ? rate.toLocaleString() : "—", color: rate !== null && rate < 5 ? "#F0B840" : C.teal },
               ].map(s => (
                 <div key={s.label} style={{
