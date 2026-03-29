@@ -1018,12 +1018,28 @@ function PipelineTab() {
     try {
       // Health
       const hRes = await fetch(`${MIP_API}/health`, { headers: MIP_ADMIN_HEADERS });
-      if (hRes.ok) setHealth(await hRes.json());
+      if (hRes.ok) {
+        const hd = await hRes.json();
+        setHealth({
+          status: hd?.status ?? "unknown",
+          uptime: hd?.uptime ?? undefined,
+          timestamp: hd?.timestamp ?? undefined,
+          menu_artifacts_total: hd?.menu_artifacts_total ?? undefined,
+        });
+      }
 
       // Backfill status
       const bRes = await fetch(`${MIP_API}/api/admin/menu-capture-backfill/status`, { headers: MIP_ADMIN_HEADERS });
       if (bRes.ok) {
-        const bd = await bRes.json();
+        const raw = await bRes.json();
+        const bd = {
+          completed: raw?.completed ?? 0,
+          running: raw?.running ?? 0,
+          queued: raw?.queued ?? 0,
+          total_processed: raw?.total_processed ?? 0,
+          menus_found: raw?.menus_found ?? 0,
+          menus_captured: raw?.menus_captured ?? 0,
+        };
         setBackfill(bd);
         // Calculate rate
         const now = Date.now();
@@ -1052,7 +1068,8 @@ function PipelineTab() {
         });
         if (wRes.ok) {
           const wd = await wRes.json();
-          const row = Array.isArray(wd) ? wd[0] : (wd.rows ? wd.rows[0] : wd);
+          const row = Array.isArray(wd) ? wd[0] : (wd?.rows ? wd.rows[0] : wd);
+          if (!row) throw new Error("empty response");
           const total = Number(row.total) || 0;
           const stages = [
             { label: "Total Canonical Venues", count: total,                      pct: 100 },
@@ -1114,7 +1131,7 @@ function PipelineTab() {
   }
 
   const status = pipelineStatus();
-  const backfillTotal = backfill ? backfill.completed + backfill.running + backfill.queued : 0;
+  const backfillTotal = backfill ? (backfill.completed ?? 0) + (backfill.running ?? 0) + (backfill.queued ?? 0) : 0;
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24, animation:"fadeUp 0.3s ease" }}>
