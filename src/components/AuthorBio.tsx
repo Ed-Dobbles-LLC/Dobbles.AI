@@ -55,7 +55,7 @@ export function AuthorBio() {
             consulting and platform businesses at Dobbles.AI.
           </p>
           <a
-            href="https://www.linkedin.com/in/eddobbles/"
+            href="https://www.linkedin.com/in/ed-dobbles/"
             target="_blank"
             rel="noopener noreferrer"
             style={{
