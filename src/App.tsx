@@ -8,17 +8,19 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
 
-import Home          from "./pages/Home";
-import About         from "./pages/About";
-import Projects      from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-import Contact       from "./pages/Contact";
-import Login         from "./pages/Login";
-import Hub           from "./pages/Hub";
-import MIP           from "./pages/MIP";
-import MIPBrands     from "./pages/MIPBrands";
-import MIPOps        from "./pages/MIPOps";
-import NotFound      from "./pages/NotFound";
+import Home             from "./pages/Home";
+import About            from "./pages/About";
+import Projects         from "./pages/Projects";
+import ProjectDetail    from "./pages/ProjectDetail";
+import FieldNotes       from "./pages/FieldNotes";
+import FieldNoteArticle from "./pages/FieldNoteArticle";
+import Contact          from "./pages/Contact";
+import Login            from "./pages/Login";
+import Hub              from "./pages/Hub";
+import MIP              from "./pages/MIP";
+import MIPBrands        from "./pages/MIPBrands";
+import MIPOps           from "./pages/MIPOps";
+import NotFound         from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/about"             element={<About />} />
             <Route path="/projects"          element={<Projects />} />
             <Route path="/projects/:slug"    element={<ProjectDetail />} />
+            <Route path="/field-notes"       element={<FieldNotes />} />
+            <Route path="/field-notes/:slug" element={<FieldNoteArticle />} />
             <Route path="/contact"           element={<Contact />} />
             <Route path="/login"             element={<Login />} />
 
