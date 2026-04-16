@@ -12,6 +12,7 @@ const NAV_LINKS: NavLinkDef[] = [
   { label: "Operating System", to: "/operating-system" },
   { label: "Field Notes", to: "/field-notes" },
   { label: "LinkedIn", to: "https://www.linkedin.com/in/eddobbles/", external: true },
+  { label: "Login", to: "/login" },
 ];
 
 const linkBase: React.CSSProperties = {
