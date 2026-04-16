@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { SiteNav } from "@/components/site/SiteNav";
 
 /* ── Brand tokens ── */
 const C = {
@@ -24,58 +26,6 @@ const PROOF = [
   { value: "25+", label: "Years in analytics leadership" },
   { value: "60 FTE", label: "Largest team led · $17M budget" },
   { value: "4", label: "Enterprise transformations delivered" },
-];
-
-/* ── Operating model data (trimmed descriptions) ── */
-const LAYERS = [
-  {
-    n: 1,
-    name: "DATA FOUNDATION & PLUMBING",
-    pct: "40-60%",
-    desc: "The invisible tax on every analytics org. AI handles profiling, data dictionaries, quality monitoring, and lineage mapping so analysts focus on what the data means, not where it lives.",
-  },
-  {
-    n: 2,
-    name: "DEMAND MANAGEMENT",
-    pct: "10-15%",
-    desc: "The work-about-work that fragments focus. AI automates intake triage, prioritization, capacity planning, and status updates so humans focus on the analysis, not the admin.",
-  },
-  {
-    n: 3,
-    name: "ANALYSIS & DEVELOPMENT",
-    pct: "15-20%",
-    desc: "AI as a thought partner \u2014 automated exploratory analysis, hypothesis generation, code review, and pattern detection that makes good analysts faster without replacing their judgment.",
-  },
-  {
-    n: 4,
-    name: "INSIGHT SYNTHESIS & STORYTELLING",
-    pct: "5-10%",
-    desc: "The last mile where insights become decisions. Narrative generation, executive summaries, and multi-audience versioning \u2014 where \u2018Geek that can Speak\u2019 becomes an operating principle.",
-  },
-  {
-    n: 5,
-    name: "KNOWLEDGE MANAGEMENT",
-    pct: "5-10%",
-    desc: "Institutional memory that doesn\u2019t walk out the door. Semantic search across past analyses, methodology docs, and decision logs so nobody solves the same problem twice.",
-  },
-  {
-    n: 6,
-    name: "OPERATIONS & IMPROVEMENT",
-    pct: "5-10%",
-    desc: "The continuous improvement loop most teams never get to. SLA monitoring, skills gap analysis, and stakeholder feedback synthesis \u2014 making the analytics function itself better over time.",
-  },
-  {
-    n: 7,
-    name: "AI GOVERNANCE & QA",
-    pct: "new layer",
-    desc: "Enterprise AI without enterprise risk. Code audit, hallucination detection, cost tracking, and full interaction logging \u2014 the layer that separates responsible AI from \u2018hope for the best.\u2019",
-  },
-  {
-    n: 8,
-    name: "ONBOARDING & ENABLEMENT",
-    pct: "new layer",
-    desc: "Compressing months of ramp-up into weeks. Guided data tours, role-based learning paths, and tribal knowledge capture \u2014 because nobody should figure out the data landscape alone.",
-  },
 ];
 
 /* ── Intersection Observer hook for fade-in ── */
@@ -171,29 +121,11 @@ function LinkedInIcon({ size = 20, color = C.muted }: { size?: number; color?: s
 export default function Home() {
   return (
     <div style={{ backgroundColor: C.bg, minHeight: "100vh", fontFamily: font, color: C.text, overflowX: "hidden" }}>
+      <SiteNav />
 
       {/* ═══ SECTION 1: HERO ═══ */}
       <section>
-        <div style={{ ...sectionPad, paddingTop: 48, paddingBottom: 128 }}>
-          {/* Top bar */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 80 }}>
-            <span style={{ fontFamily: font, fontWeight: 700, fontSize: 22, letterSpacing: "0.03em" }}>
-              <span style={{ color: C.text }}>Dobbles</span>
-              <span style={{ color: C.red }}>.AI</span>
-            </span>
-            <a
-              href="https://linkedin.com/in/ed-dobbles"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ opacity: 0.4, transition: "opacity 0.2s" }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
-              onMouseLeave={e => (e.currentTarget.style.opacity = "0.4")}
-              aria-label="LinkedIn"
-            >
-              <LinkedInIcon size={22} color={C.text} />
-            </a>
-          </div>
-
+        <div style={{ ...sectionPad, paddingTop: 80, paddingBottom: 128 }}>
           {/* Identity — left-aligned with headshot */}
           <FadeIn>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "clamp(32px, 5vw, 56px)", flexWrap: "wrap" }}>
@@ -330,60 +262,170 @@ export default function Home() {
 
       <div style={divider} />
 
-      {/* ═══ SECTION 3: 8-LAYER MODEL ═══ */}
+      {/* ═══ SECTION 3: TWO PATHS ═══ */}
       <section>
         <div style={sectionPad}>
           <FadeIn>
-            <p style={sectionHeader}>AI ANALYTICS OPERATING SYSTEM</p>
-            <h2 style={h2Style}>Eight layers. One operating model.</h2>
-          </FadeIn>
-          <FadeIn>
-            <p style={{ fontFamily: font, fontWeight: 400, fontSize: 16, lineHeight: 1.85, color: C.muted, maxWidth: 820, marginBottom: 56 }}>
-              After building analytics functions at four Fortune 500 companies, I kept solving the same problems. So I mapped the entire analytics lifecycle into an eight-layer operating model — identifying exactly where AI amplifies human judgment and where it doesn't. This isn't a product. It's how I think about building analytics organizations.
-            </p>
+            <p style={sectionHeader}>TWO WAYS IN</p>
+            <h2 style={h2Style}>The model and the field notes.</h2>
           </FadeIn>
 
-          {/* Layer cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 480px), 1fr))", gap: 16 }}>
-            {LAYERS.map((layer) => (
-              <FadeIn key={layer.n}>
-                <div style={{
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))",
+              gap: 20,
+              marginTop: 40,
+            }}
+          >
+            <FadeIn>
+              <Link
+                to="/operating-system"
+                className="home-path-card"
+                style={{
+                  display: "block",
                   backgroundColor: C.card,
                   border: `1px solid ${C.border}`,
                   borderRadius: 8,
-                  padding: 28,
+                  padding: 36,
                   height: "100%",
-                }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-                    <span style={{ fontFamily: font, fontWeight: 700, fontSize: 32, color: C.steel, lineHeight: 1, opacity: 0.4 }}>
-                      {String(layer.n).padStart(2, "0")}
-                    </span>
-                    <span style={{ fontFamily: font, fontWeight: 700, fontSize: 13, letterSpacing: "0.06em", color: C.text }}>
-                      {layer.name}
-                    </span>
-                  </div>
-                  <p style={{
-                    fontFamily: font, fontWeight: 700, fontSize: 11,
-                    color: layer.pct.startsWith("new") ? C.teal : C.red,
-                    letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 14,
-                  }}>
-                    {layer.pct.startsWith("new") ? layer.pct : `${layer.pct} of team time`}
-                  </p>
-                  <p style={{ fontFamily: font, fontWeight: 400, fontSize: 14, lineHeight: 1.7, color: C.muted }}>
-                    {layer.desc}
-                  </p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
+                  textDecoration: "none",
+                  transition: "border-color 150ms ease, transform 150ms ease",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 11,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: C.red,
+                    marginBottom: 16,
+                  }}
+                >
+                  Operating System
+                </p>
+                <h3
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 24,
+                    color: C.text,
+                    margin: 0,
+                    marginBottom: 14,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  Eight layers. One operating model.
+                </h3>
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 400,
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: C.muted,
+                    margin: 0,
+                    marginBottom: 20,
+                  }}
+                >
+                  The framework for an AI-native analytics org — from data plumbing
+                  through governance. How I think about building analytics
+                  organizations.
+                </p>
+                <span
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: C.sky,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  Explore the model →
+                </span>
+              </Link>
+            </FadeIn>
 
-          <FadeIn>
-            <p style={{ fontFamily: font, fontWeight: 400, fontSize: 15, lineHeight: 1.8, color: C.muted, marginTop: 56, fontStyle: "italic", maxWidth: 820 }}>
-              The framework travels with me — adaptable to your data, your stack, your governance requirements.
-            </p>
-          </FadeIn>
+            <FadeIn>
+              <Link
+                to="/field-notes"
+                className="home-path-card"
+                style={{
+                  display: "block",
+                  backgroundColor: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: 36,
+                  height: "100%",
+                  textDecoration: "none",
+                  transition: "border-color 150ms ease, transform 150ms ease",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 11,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: C.red,
+                    marginBottom: 16,
+                  }}
+                >
+                  Field Notes
+                </p>
+                <h3
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 24,
+                    color: C.text,
+                    margin: 0,
+                    marginBottom: 14,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  Writing from the field.
+                </h3>
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 400,
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: C.muted,
+                    margin: 0,
+                    marginBottom: 20,
+                  }}
+                >
+                  Essays, experiments, and notes on analytics, AI, and the craft of
+                  building — including the doctrine I drop into every Claude project.
+                </p>
+                <span
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: C.sky,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  Read the notes →
+                </span>
+              </Link>
+            </FadeIn>
+          </div>
         </div>
       </section>
+
+      <style>{`
+        .home-path-card:hover {
+          border-color: rgba(219,84,97,0.5) !important;
+          transform: translateY(-2px);
+        }
+      `}</style>
 
       <div style={divider} />
 

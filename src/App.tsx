@@ -12,6 +12,7 @@ import Home             from "./pages/Home";
 import About            from "./pages/About";
 import Projects         from "./pages/Projects";
 import ProjectDetail    from "./pages/ProjectDetail";
+import OperatingSystem  from "./pages/OperatingSystem";
 import FieldNotes       from "./pages/FieldNotes";
 import FieldNoteArticle from "./pages/FieldNoteArticle";
 import Contact          from "./pages/Contact";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/about"             element={<About />} />
             <Route path="/projects"          element={<Projects />} />
             <Route path="/projects/:slug"    element={<ProjectDetail />} />
+            <Route path="/operating-system"  element={<OperatingSystem />} />
             <Route path="/field-notes"       element={<FieldNotes />} />
             <Route path="/field-notes/:slug" element={<FieldNoteArticle />} />
             <Route path="/contact"           element={<Contact />} />
