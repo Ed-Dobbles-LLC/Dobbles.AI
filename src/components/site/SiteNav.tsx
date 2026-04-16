@@ -84,7 +84,7 @@ export function SiteNav() {
           <span style={{ color: "#DB5461" }}>.AI</span>
         </Link>
 
-        <nav className="hidden md:flex" style={{ gap: "28px", alignItems: "center" }}>
+        <nav className="site-nav-desktop" style={{ gap: "28px", alignItems: "center" }}>
           {NAV_LINKS.map((link) => (
             <NavItem key={link.to} link={link} />
           ))}
@@ -93,26 +93,31 @@ export function SiteNav() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="md:hidden"
+          className="site-nav-toggle"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           style={{
             background: "transparent",
             border: "none",
             color: "#F7FBFE",
-            padding: "6px",
+            padding: "10px",
+            margin: "-10px",
             cursor: "pointer",
-            display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            touchAction: "manipulation",
+            WebkitTapHighlightColor: "transparent",
           }}
         >
-          {open ? <X size={22} /> : <Menu size={22} />}
+          <span style={{ pointerEvents: "none", display: "inline-flex" }}>
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </span>
         </button>
       </div>
 
       {open && (
         <div
-          className="md:hidden"
+          className="site-nav-mobile-panel"
           style={{
             borderTop: "1px solid rgba(247,251,254,0.08)",
             background: "#0D0D0D",
@@ -139,6 +144,13 @@ export function SiteNav() {
 
       <style>{`
         .site-nav-link:hover { color: #F7FBFE !important; }
+        .site-nav-desktop { display: none; }
+        .site-nav-toggle { display: inline-flex; }
+        @media (min-width: 768px) {
+          .site-nav-desktop { display: flex; }
+          .site-nav-toggle { display: none; }
+          .site-nav-mobile-panel { display: none; }
+        }
       `}</style>
     </header>
   );
