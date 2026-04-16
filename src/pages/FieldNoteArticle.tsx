@@ -1,30 +1,106 @@
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, Navigate } from "react-router-dom";
 import { SiteNav } from "@/components/site/SiteNav";
-import { SiteFooter } from "@/components/site/SiteFooter";
-import { ArrowLeft } from "lucide-react";
+import { ArticleRenderer } from "@/components/ArticleRenderer";
+import { AuthorBio } from "@/components/AuthorBio";
+import { getFieldNote } from "@/data/fieldNotes";
+
+function estimateReadTime(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 225));
+}
 
 export default function FieldNoteArticle() {
   const { slug } = useParams<{ slug: string }>();
+  const note = slug ? getFieldNote(slug) : undefined;
+  const [readMins, setReadMins] = useState<number | null>(null);
+
+  const filePath = note ? `/articles/${note.file}` : "";
+
+  useEffect(() => {
+    if (!filePath) return;
+    let cancelled = false;
+    fetch(filePath)
+      .then((res) => (res.ok ? res.text() : ""))
+      .then((text) => {
+        if (!cancelled && text) setReadMins(estimateReadTime(text));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [filePath]);
+
+  if (!note) return <Navigate to="/field-notes" replace />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ background: "#0D0D0D", minHeight: "100vh" }}>
       <SiteNav />
 
-      <div className="max-w-3xl mx-auto px-6 pt-32 pb-8">
-        <Link
-          to="/field-notes"
-          className="inline-flex items-center gap-2 font-sans text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
+      <header
+        style={{
+          maxWidth: "720px",
+          margin: "0 auto",
+          padding: "128px 24px 32px",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 700,
+            fontSize: "11px",
+            color: "#DB5461",
+            textTransform: "uppercase",
+            letterSpacing: "0.15em",
+            marginBottom: "20px",
+          }}
         >
-          <ArrowLeft className="w-4 h-4" /> All Field Notes
-        </Link>
+          Field Notes
+        </div>
+        <h1
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 800,
+            fontSize: "clamp(28px, 5vw, 42px)",
+            lineHeight: 1.15,
+            color: "#F7FBFE",
+            margin: 0,
+            marginBottom: "20px",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {note.title}
+        </h1>
+        <div
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            fontSize: "13px",
+            color: "rgba(247,251,254,0.55)",
+            display: "flex",
+            gap: "12px",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <span>{note.date}</span>
+          {readMins !== null && (
+            <>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <span>{readMins} min read</span>
+            </>
+          )}
+          {note.type === "Article (The Table)" && (
+            <>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <span>Published in The Table</span>
+            </>
+          )}
+        </div>
+      </header>
 
-        <h1 className="font-serif text-4xl md:text-5xl tracking-tight mb-6">{slug}</h1>
-        <p className="font-sans text-base text-muted-foreground leading-relaxed">
-          Article content coming soon.
-        </p>
-      </div>
+      <ArticleRenderer filePath={filePath} />
 
-      <SiteFooter />
+      <AuthorBio />
     </div>
   );
 }

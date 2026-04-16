@@ -260,12 +260,12 @@ export function ArticleRenderer({ filePath }: ArticleRendererProps) {
   }, [filePath]);
 
   return (
-    <div style={{ background: "#0D0D0D", minHeight: "100vh" }}>
+    <div style={{ background: "#0D0D0D" }}>
       <article
         style={{
           maxWidth: "720px",
           margin: "0 auto",
-          padding: "48px 24px 96px",
+          padding: "16px 24px 48px",
         }}
       >
         {loading && (
