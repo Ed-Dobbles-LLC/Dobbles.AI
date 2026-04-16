@@ -266,8 +266,8 @@ export default function Home() {
       <section>
         <div style={sectionPad}>
           <FadeIn>
-            <p style={sectionHeader}>TWO WAYS IN</p>
-            <h2 style={h2Style}>The model and the field notes.</h2>
+            <p style={sectionHeader}>THREE WAYS IN</p>
+            <h2 style={h2Style}>The model, the playbook, and the field notes.</h2>
           </FadeIn>
 
           <div
@@ -344,6 +344,74 @@ export default function Home() {
                   }}
                 >
                   Explore the model →
+                </span>
+              </Link>
+            </FadeIn>
+
+            <FadeIn>
+              <Link
+                to="/playbook"
+                className="home-path-card"
+                style={{
+                  display: "block",
+                  backgroundColor: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: 36,
+                  height: "100%",
+                  textDecoration: "none",
+                  transition: "border-color 150ms ease, transform 150ms ease",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 11,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: C.red,
+                    marginBottom: 16,
+                  }}
+                >
+                  Playbook
+                </p>
+                <h3
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 700,
+                    fontSize: 24,
+                    color: C.text,
+                    margin: 0,
+                    marginBottom: 14,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  How I work with AI.
+                </h3>
+                <p
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 400,
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: C.muted,
+                    margin: 0,
+                    marginBottom: 20,
+                  }}
+                >
+                  The annotated operating documents behind every project.
+                </p>
+                <span
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: C.sky,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  Open the playbook →
                 </span>
               </Link>
             </FadeIn>

@@ -11,6 +11,7 @@ interface NavLinkDef {
 const NAV_LINKS: NavLinkDef[] = [
   { label: "Operating System", to: "/operating-system" },
   { label: "Field Notes", to: "/field-notes" },
+  { label: "Playbook", to: "/playbook" },
   { label: "LinkedIn", to: "https://www.linkedin.com/in/ed-dobbles/", external: true },
   { label: "Login", to: "/login" },
 ];

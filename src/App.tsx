@@ -15,6 +15,7 @@ import ProjectDetail    from "./pages/ProjectDetail";
 import OperatingSystem  from "./pages/OperatingSystem";
 import FieldNotes       from "./pages/FieldNotes";
 import FieldNoteArticle from "./pages/FieldNoteArticle";
+import Playbook         from "./pages/Playbook";
 import PlaybookDoc      from "./pages/PlaybookDoc";
 import Contact          from "./pages/Contact";
 import Login            from "./pages/Login";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/operating-system"  element={<OperatingSystem />} />
             <Route path="/field-notes"       element={<FieldNotes />} />
             <Route path="/field-notes/:slug" element={<FieldNoteArticle />} />
+            <Route path="/playbook"          element={<Playbook />} />
             <Route path="/playbook/:slug"    element={<PlaybookDoc />} />
             <Route path="/contact"           element={<Contact />} />
             <Route path="/login"             element={<Login />} />
