@@ -5,6 +5,7 @@ import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { AuthorBio } from "@/components/AuthorBio";
 import { DoctrineExtras } from "@/components/DoctrineExtras";
 import { getFieldNote } from "@/data/fieldNotes";
+import { useOpenGraph } from "@/hooks/useOpenGraph";
 
 function estimateReadTime(text: string): number {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
@@ -31,6 +32,13 @@ export default function FieldNoteArticle() {
       cancelled = true;
     };
   }, [filePath]);
+
+  useOpenGraph({
+    title: note ? `${note.title} — Dobbles.AI` : "Field Notes — Dobbles.AI",
+    description: note?.subtitle ?? "",
+    type: "article",
+    url: note ? `https://dobbles.ai/field-notes/${note.slug}` : "https://dobbles.ai/field-notes",
+  });
 
   if (!note) return <Navigate to="/field-notes" replace />;
 
