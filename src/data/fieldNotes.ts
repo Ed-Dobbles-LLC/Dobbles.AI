@@ -6,6 +6,7 @@ export interface FieldNote {
   date: string;
   type: FieldNoteType;
   file: string;
+  subtitle: string;
 }
 
 export const FIELD_NOTES: FieldNote[] = [
@@ -15,6 +16,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "April 2026",
     type: "Article + Download",
     file: "doctrine.md",
+    subtitle:
+      "The behavioral contract I drop into every Claude project. Includes the full downloadable package.",
   },
   {
     slug: "ai-mistakes-managerial",
@@ -22,6 +25,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 31, 2026",
     type: "Article",
     file: "ai-mistakes-managerial.md",
+    subtitle:
+      "Twelve mistakes, roughly $2,300 of waste, and what they taught me about managing AI.",
   },
   {
     slug: "10x-nothing",
@@ -29,6 +34,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 2026",
     type: "Post",
     file: "10x-nothing.md",
+    subtitle:
+      "The triage rule I ran analytics teams by for 25 years — and why it was wrong.",
   },
   {
     slug: "claude-and-chatgpt",
@@ -36,6 +43,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 2026",
     type: "Post",
     file: "claude-and-chatgpt.md",
+    subtitle:
+      "Two rival models, one escalation path. How I use the competition against itself.",
   },
   {
     slug: "what-running-out-of-analysts-taught-me",
@@ -43,6 +52,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 17, 2026",
     type: "Article",
     file: "what-running-out-of-analysts-taught-me.md",
+    subtitle:
+      "The analytics backlog never cleared until I had no analysts left — and AI filled the gap.",
   },
   {
     slug: "fixing-biased-leadership-systems",
@@ -50,6 +61,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 2, 2026",
     type: "Article (The Table)",
     file: "fixing-biased-leadership-systems.md",
+    subtitle:
+      "If your leadership model produces biased outcomes, the model — not the people — needs fixing.",
   },
   {
     slug: "i-built-a-podcast",
@@ -57,6 +70,8 @@ export const FIELD_NOTES: FieldNote[] = [
     date: "March 2026",
     type: "Post",
     file: "i-built-a-podcast.md",
+    subtitle:
+      "I couldn't find a podcast on what I needed to know by Thursday. So I built one.",
   },
 ];
 
