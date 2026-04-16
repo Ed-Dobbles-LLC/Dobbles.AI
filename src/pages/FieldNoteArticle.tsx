@@ -3,6 +3,7 @@ import { useParams, Navigate } from "react-router-dom";
 import { SiteNav } from "@/components/site/SiteNav";
 import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { AuthorBio } from "@/components/AuthorBio";
+import { DoctrineExtras } from "@/components/DoctrineExtras";
 import { getFieldNote } from "@/data/fieldNotes";
 
 function estimateReadTime(text: string): number {
@@ -99,6 +100,8 @@ export default function FieldNoteArticle() {
       </header>
 
       <ArticleRenderer filePath={filePath} />
+
+      {note.slug === "doctrine" && <DoctrineExtras />}
 
       <AuthorBio />
     </div>
