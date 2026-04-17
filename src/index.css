@@ -1,156 +1,179 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Dobbles.AI brand system — always dark.
+ * Canonical values:
+ *   bg       #0D0D0D
+ *   card     #1D1D1D
+ *   text     #F7FBFE
+ *   muted    rgba(247,251,254,0.55)
+ *   border   rgba(247,251,254,0.08)
+ *   coral    #DB5461
+ *   sky      #85E4FD
+ */
+
 @layer base {
   :root {
-    /* ── Light base ── */
-    --background: 210 20% 97%;
-    --foreground: 213 84% 11%;
+    /* Page surface */
+    --background: 0 0% 5%;          /* #0D0D0D */
+    --foreground: 204 79% 98%;      /* #F7FBFE */
 
-    --card: 0 0% 100%;
-    --card-foreground: 213 84% 11%;
+    --card: 0 0% 11%;               /* #1D1D1D */
+    --card-foreground: 204 79% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 213 84% 11%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 204 79% 98%;
 
-    /* Primary = Coral Red (#DB5461) */
+    /* Primary = Coral Red (#DB5461) — CTAs, section labels, badges */
     --primary: 354 64% 59%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 204 79% 98%;
 
     /* Secondary = Navy (#060A57) */
     --secondary: 237 90% 18%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary-foreground: 204 79% 98%;
 
-    --muted: 210 30% 94%;
-    --muted-foreground: 213 30% 42%;
+    /* Muted = translucent foreground on the page bg */
+    --muted: 0 0% 11%;
+    --muted-foreground: 204 79% 98%;  /* used with opacity via .text-muted-foreground; keep hue identical to foreground */
 
-    /* Accent = Steel Blue (#225A8E) */
-    --accent: 209 63% 35%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent = Sky Blue (#85E4FD) — links, inline highlights */
+    --accent: 197 97% 76%;
+    --accent-foreground: 0 0% 5%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 204 79% 98%;
 
-    --border: 213 20% 88%;
-    --input: 213 20% 88%;
+    /* Hairline borders — dim on #0D0D0D. Spec canonical value is rgba(247,251,254,0.08);
+       we express it as an HSL that closely matches the rendered shade on the dark bg
+       so tailwind opacity modifiers (border-border/60 etc.) stay subtle. */
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
     --ring: 354 64% 59%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
-    /* Brand tokens — mapped to semantic values */
-    --dobbles-red:  354 64% 59%;
-    --dobbles-navy: 237 90% 18%;
-    --dobbles-blue: 209 63% 35%;
-    --eerie-black:    213 25% 15%;
-    --ghost-white:    0 0% 98%;
+    /* Brand tokens */
+    --dobbles-red:   354 64% 59%;   /* #DB5461 */
+    --dobbles-navy:  237 90% 18%;   /* #060A57 */
+    --dobbles-blue:  209 63% 35%;   /* #225A8E */
+    --dobbles-sky:   197 97% 76%;   /* #85E4FD */
+    --eerie-black:   0 0% 5%;
+    --ghost-white:   204 79% 98%;
 
-    /* Sidebar */
-    --sidebar-background: 237 90% 14%;
-    --sidebar-foreground: 213 20% 85%;
+    /* Sidebar — match main surface */
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 204 79% 98%;
     --sidebar-primary: 354 64% 59%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 209 63% 25%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 237 60% 22%;
+    --sidebar-primary-foreground: 204 79% 98%;
+    --sidebar-accent: 0 0% 11%;
+    --sidebar-accent-foreground: 204 79% 98%;
+    --sidebar-border: 204 79% 98%;
     --sidebar-ring: 354 64% 59%;
   }
 
+  /* .dark applied to <html> (forced) — identical values, kept for tailwind dark: variants */
   .dark {
-    /* ── Dark base ── */
-    --background: 237 90% 8%;
-    --foreground: 210 20% 92%;
-
-    --card: 237 60% 12%;
-    --card-foreground: 210 20% 92%;
-
-    --popover: 237 60% 12%;
-    --popover-foreground: 210 20% 92%;
-
-    /* Primary = Coral Red (slightly brighter for dark bg) */
-    --primary: 354 64% 62%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary = Navy (lighter for contrast on dark bg) */
-    --secondary: 237 50% 28%;
-    --secondary-foreground: 210 20% 92%;
-
-    --muted: 237 40% 16%;
-    --muted-foreground: 210 20% 60%;
-
-    /* Accent = Steel Blue (brighter for dark bg) */
-    --accent: 209 63% 42%;
-    --accent-foreground: 0 0% 100%;
-
+    --background: 0 0% 5%;
+    --foreground: 204 79% 98%;
+    --card: 0 0% 11%;
+    --card-foreground: 204 79% 98%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 204 79% 98%;
+    --primary: 354 64% 59%;
+    --primary-foreground: 204 79% 98%;
+    --secondary: 237 90% 18%;
+    --secondary-foreground: 204 79% 98%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 204 79% 98%;
+    --accent: 197 97% 76%;
+    --accent-foreground: 0 0% 5%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 237 30% 22%;
-    --input: 237 30% 22%;
-    --ring: 354 64% 62%;
-
-    /* Brand tokens stay the same */
-    --dobbles-red:  354 64% 62%;
+    --destructive-foreground: 204 79% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 354 64% 59%;
+    --dobbles-red: 354 64% 59%;
     --dobbles-navy: 237 90% 18%;
-    --dobbles-blue: 209 63% 42%;
-    --eerie-black:    213 25% 8%;
-    --ghost-white:    210 20% 92%;
-
-    /* Sidebar (already dark-friendly) */
-    --sidebar-background: 237 90% 10%;
-    --sidebar-foreground: 213 20% 85%;
-    --sidebar-primary: 354 64% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 209 63% 30%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 237 40% 18%;
-    --sidebar-ring: 354 64% 62%;
+    --dobbles-blue: 209 63% 35%;
+    --dobbles-sky: 197 97% 76%;
+    --eerie-black: 0 0% 5%;
+    --ghost-white: 204 79% 98%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 204 79% 98%;
+    --sidebar-primary: 354 64% 59%;
+    --sidebar-primary-foreground: 204 79% 98%;
+    --sidebar-accent: 0 0% 11%;
+    --sidebar-accent-foreground: 204 79% 98%;
+    --sidebar-border: 204 79% 98%;
+    --sidebar-ring: 354 64% 59%;
   }
 }
 
 @layer base {
-  * { @apply border-border; }
+  html {
+    color-scheme: dark;
+  }
+
+  /* Semantic tokens use rgb() so they can carry alpha via tailwind's `/XX` suffix.
+     Border is rgba(247,251,254,0.08); muted-foreground is rgba(247,251,254,0.55). */
+  * { border-color: rgb(247 251 254 / 0.08); }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'DM Sans', sans-serif;
+    background-color: #0D0D0D;
+    color: #F7FBFE;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-weight: 400;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
+  a {
+    color: #85E4FD;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
   }
 
   ::selection {
-    background: hsl(354 64% 59%);
-    color: #fff;
+    background: #DB5461;
+    color: #F7FBFE;
   }
 
   ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
+  ::-webkit-scrollbar-track { background: #0D0D0D; }
+  ::-webkit-scrollbar-thumb { background: rgba(247,251,254,0.12); border-radius: 2px; }
 }
 
-.font-serif { font-family: 'Instrument Serif', Georgia, serif; }
-.font-sans  { font-family: 'DM Sans', sans-serif; }
+/* Both utility classes resolve to Montserrat — brand is single-font. */
+.font-serif { font-family: 'Montserrat', 'Segoe UI', sans-serif; font-weight: 700; }
+.font-sans  { font-family: 'Montserrat', 'Segoe UI', sans-serif; }
 
-/* ── Existing component compat ── */
-.bg-gradient-brand  { background: linear-gradient(135deg, hsl(354 64% 59%), hsl(209 63% 35%)); }
-.bg-gradient-navy   { background: linear-gradient(135deg, hsl(237 90% 16%), hsl(209 63% 30%)); }
-.bg-gradient-subtle { background: hsl(var(--background)); }
-.bg-dobbles-red   { background: hsl(354 64% 59%); }
-.bg-dobbles-navy  { background: hsl(237 90% 18%); }
-.bg-dobbles-blue  { background: hsl(209 63% 35%); }
+/* Tailwind's text-muted-foreground token wants a single color; we want it translucent.
+   Override to the spec'd rgba(247,251,254,0.55). */
+.text-muted-foreground { color: rgba(247, 251, 254, 0.55) !important; }
 
-/* ── Shadows ── */
-.shadow-soft     { box-shadow: 0 2px 8px -2px hsl(213 84% 11% / 0.10); }
-.shadow-medium   { box-shadow: 0 4px 16px -4px hsl(213 84% 11% / 0.12); }
-.shadow-elevated { box-shadow: 0 8px 32px -8px hsl(213 84% 11% / 0.18); }
+/* Existing gradient utilities — remapped to the dark surface */
+.bg-gradient-brand  { background: linear-gradient(135deg, #DB5461, #225A8E); }
+.bg-gradient-navy   { background: linear-gradient(135deg, #060A57, #225A8E); }
+.bg-gradient-subtle { background: #1D1D1D; }
+.bg-dobbles-red   { background: #DB5461; }
+.bg-dobbles-navy  { background: #060A57; }
+.bg-dobbles-blue  { background: #225A8E; }
 
-/* ── Nav hero used in hub ── */
+/* Shadows */
+.shadow-soft     { box-shadow: 0 2px 8px -2px rgba(0,0,0,0.5); }
+.shadow-medium   { box-shadow: 0 4px 16px -4px rgba(0,0,0,0.55); }
+.shadow-elevated { box-shadow: 0 8px 32px -8px rgba(0,0,0,0.6); }
+
+/* Hub hero gradient */
 .bg-gradient-hub-hero {
-  background: linear-gradient(135deg, hsl(237 90% 14%), hsl(209 63% 30%));
+  background: linear-gradient(135deg, #0D0D0D, #1D1D1D);
 }

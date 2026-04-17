@@ -181,7 +181,7 @@ export default function FieldNotes() {
 
       <style>{`
         .field-note-card:hover {
-          border-color: rgba(219,84,97,0.5) !important;
+          border-color: rgba(219,84,97,0.4) !important;
           transform: translateY(-1px);
         }
       `}</style>

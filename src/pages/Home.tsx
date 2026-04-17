@@ -4,8 +4,8 @@ import { SiteNav } from "@/components/site/SiteNav";
 
 /* ── Brand tokens ── */
 const C = {
-  bg: "#1D1D1D",
-  card: "#252525",
+  bg: "#0D0D0D",
+  card: "#1D1D1D",
   text: "#F7FBFE",
   muted: "rgba(247,251,254,0.55)",
   red: "#DB5461",
@@ -14,8 +14,8 @@ const C = {
   navy: "#060A57",
   steel: "#225A8E",
   bright: "#3273DB",
-  divider: "rgba(255,255,255,0.06)",
-  border: "rgba(255,255,255,0.10)",
+  divider: "rgba(247,251,254,0.08)",
+  border: "rgba(247,251,254,0.08)",
 } as const;
 
 const font = "'Montserrat', 'Segoe UI', sans-serif";
@@ -490,7 +490,7 @@ export default function Home() {
 
       <style>{`
         .home-path-card:hover {
-          border-color: rgba(219,84,97,0.5) !important;
+          border-color: rgba(219,84,97,0.4) !important;
           transform: translateY(-2px);
         }
       `}</style>
