@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthProvider";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -317,7 +316,6 @@ export default function MIPBrands() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <Link
               to="/mip"
               className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-foreground transition-colors"

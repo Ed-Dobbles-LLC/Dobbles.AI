@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthProvider";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -368,7 +367,6 @@ export default function MIP() {
             <span className="font-sans text-xs text-muted-foreground ml-3 hidden md:block">/ Menu Intelligence</span>
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <Link
               to="/hub"
               className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-foreground transition-colors"
