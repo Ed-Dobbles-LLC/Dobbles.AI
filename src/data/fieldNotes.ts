@@ -11,6 +11,15 @@ export interface FieldNote {
 
 export const FIELD_NOTES: FieldNote[] = [
   {
+    slug: "ai-forgetful-coworker",
+    title: "The Reason Your AI Is a Forgetful Co-Worker (And What You Can Do About It)",
+    date: "April 30, 2026",
+    type: "Article",
+    file: "ai-forgetful-coworker.md",
+    subtitle:
+      "AI has four kinds of memory. Only one is yours to control. Here's how to build the filing cabinet.",
+  },
+  {
     slug: "doctrine",
     title: "The 3 Pages of Rules I Wrote Because Claude Kept Pissing Me Off",
     date: "April 2026",
