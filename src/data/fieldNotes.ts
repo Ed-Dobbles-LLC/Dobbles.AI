@@ -11,6 +11,15 @@ export interface FieldNote {
 
 export const FIELD_NOTES: FieldNote[] = [
   {
+    slug: "chatgpt-goblin-obsession",
+    title: "What ChatGPT's Goblin Obsession Can Tell You About AIs",
+    date: "May 1, 2026",
+    type: "Article",
+    file: "chatgpt-goblin-obsession.md",
+    subtitle:
+      "ChatGPT got hooked on goblins. OpenAI patched it with duct tape. That patch is the governance layer you should be building anyway.",
+  },
+  {
     slug: "ai-forgetful-coworker",
     title: "The Reason Your AI Is a Forgetful Co-Worker (And What You Can Do About It)",
     date: "April 30, 2026",
