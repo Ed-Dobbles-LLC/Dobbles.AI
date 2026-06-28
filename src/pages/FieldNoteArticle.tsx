@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { AuthorBio } from "@/components/AuthorBio";
 import { DoctrineExtras } from "@/components/DoctrineExtras";
+import { CareerStoryBankExtras } from "@/components/CareerStoryBankExtras";
 import { getFieldNote } from "@/data/fieldNotes";
 import { useOpenGraph } from "@/hooks/useOpenGraph";
 
@@ -110,6 +111,7 @@ export default function FieldNoteArticle() {
       <ArticleRenderer filePath={filePath} />
 
       {note.slug === "doctrine" && <DoctrineExtras />}
+      {note.slug === "what-is-a-project" && <CareerStoryBankExtras />}
 
       <AuthorBio />
     </div>

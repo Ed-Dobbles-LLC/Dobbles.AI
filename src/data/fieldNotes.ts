@@ -11,6 +11,15 @@ export interface FieldNote {
 
 export const FIELD_NOTES: FieldNote[] = [
   {
+    slug: "what-is-a-project",
+    title: "The Career Story Bank",
+    date: "June 2026",
+    type: "Article",
+    file: "what-is-a-project.md",
+    subtitle:
+      "The job hunt is the clearest example of what an AI project actually is — a source, the things you use it for, and the limits that keep it honest.",
+  },
+  {
     slug: "chatgpt-goblin-obsession",
     title: "What ChatGPT's Goblin Obsession Can Tell You About AIs",
     date: "May 1, 2026",
