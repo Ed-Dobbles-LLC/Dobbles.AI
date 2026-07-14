@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
 
-import Home             from "./pages/Home";
+import PublicLanding     from "./pages/PublicLanding";
 import About            from "./pages/About";
 import Projects         from "./pages/Projects";
 import ProjectDetail    from "./pages/ProjectDetail";
@@ -37,7 +37,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* ── Public marketing ── */}
-            <Route path="/"                  element={<Home />} />
+            <Route path="/"                  element={<PublicLanding />} />
             <Route path="/about"             element={<About />} />
             <Route path="/projects"          element={<Projects />} />
             <Route path="/projects/:slug"    element={<ProjectDetail />} />
