@@ -7,6 +7,8 @@ import {
   Crown,
   BarChart3,
   Wine,
+  ListChecks,
+  Users,
   ExternalLink,
 } from "lucide-react";
 
@@ -52,6 +54,20 @@ const tools: Tool[] = [
     description: "Brand penetration analysis across restaurant menus",
     url: "/mip",
     icon: <Wine size={22} />,
+    status: "live",
+  },
+  {
+    name: "AI CPO",
+    description: "Briefs queue & task triage",
+    url: "https://app.dispensaryintelligence.com/cpo",
+    icon: <ListChecks size={22} />,
+    status: "live",
+  },
+  {
+    name: "Org Chart",
+    description: "AI agent roster & status",
+    url: "https://app.dispensaryintelligence.com/cpo/org",
+    icon: <Users size={22} />,
     status: "live",
   },
 ];
